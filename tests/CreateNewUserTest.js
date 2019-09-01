@@ -1,21 +1,6 @@
 const CreateNewUserUseCase = require('../usecases/user/CreateNewUserUseCase');
+const UserRepositorySpy = require('../tests/testdoubles/UserRepositorySpy')
 const {secretKeyHash} = require('../usecases/user/Hashing')
-
-class UserRepositorySpy{
-
-    constructor(){
-        this.userData = {}
-    }
-
-    async createUser(userData){
-        this.userData = userData
-    }
-    
-    getWrittenUser(){
-        return this.userData
-    }
-
-}
 
 const validAddUserRequest = {
     firstName: 'Bassel',

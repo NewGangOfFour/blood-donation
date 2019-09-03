@@ -6,6 +6,7 @@ const {
     UserAlwaysPresentRepositoryStub,
     UserAlwaysNotPresentRepositoryStub
 } = require('../tests/testdoubles/UserRepository/IsUserPresentPossibleOutcomes')
+const ObjectModifier = require('../tests/helpers/ObjectModifier')
 const combineIntoOneObject = require('../tests/helpers/combineIntoOneObject')
 const {secretKeyHash} = require('../usecases/user/Hashing')
 
@@ -22,6 +23,8 @@ const validAddUserRequest = {
     },
     bloodType: 'B+' 
 }
+
+const validRequestModifier = new ObjectModifier(validAddUserRequest)
 
 QUnit.test('Test that creating new user succeeds when information is valid', (assert) => {
     const userRepository = combineIntoOneObject(
@@ -46,18 +49,9 @@ QUnit.test('Test that creating new user succeeds when information is valid', (as
 QUnit.test('Test that creating new user fails when email is invalid', (assert) => {
     const anyRepository = new UserAlwaysNotPresentRepositoryStub();
     const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
-    return createNewUserUseCase.do({
-        firstName: 'Bassel',
-        lastName: 'Chahine',
-        email: 'hesoyam',
-        phone: '+9613000000',
-        dateOfBirth: {
-            day: '3',
-            month: '3',
-            year: '1990'
-        },
-        bloodType: 'B+'
-    })
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        email: 'invalidemail'
+    }))
     .catch((exception) => {
         assertEqualExceptions(
             assert,
@@ -78,18 +72,7 @@ function assertEqualExceptions(assert, expected, actual) {
 QUnit.test('Test that creating new user fails when email is already used', (assert) => {
     const userRepositoryStub = new UserAlwaysPresentRepositoryStub();
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);
-    return createNewUserUseCase.do({
-        firstName: 'Bassel',
-        lastName: 'Chahine',
-        email: 'alinaim@naim.com',
-        phone: '+9613000000',
-        dateOfBirth: {
-            day: '3',
-            month: '3',
-            year: '1990'
-        },
-        bloodType: 'B+'
-    })
+    return createNewUserUseCase.do(validAddUserRequest)
     .catch((actualException) => {
         assert.deepEqual(
             actualException,

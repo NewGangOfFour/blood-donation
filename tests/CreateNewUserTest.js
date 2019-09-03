@@ -52,22 +52,16 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         email: 'invalidemail'
     }))
-    .catch((exception) => {
-        assertEqualExceptions(
-            assert,
+    .catch((actualException) => {
+        assert.deepEqual(
+            actualException,
             {
                 type: 'ValidationException',
                 message: 'Invalid email'
-            },
-            exception
+            }
         )
     })
 });
-
-function assertEqualExceptions(assert, expected, actual) {
-    assert.ok(expected.type === actual.type);
-    assert.ok(expected.message === actual.message);
-}
 
 QUnit.test('Test that creating new user fails when email is already used', (assert) => {
     const userRepositoryStub = new UserAlwaysPresentRepositoryStub();

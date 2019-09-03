@@ -7,14 +7,16 @@ function isEmailValid(email){
 module.exports = class {
 
     constructor(userRepoitory){
-        this.userRepoitory = userRepoitory
+        this.userRepository = userRepoitory
     }
 
     async do(createNewUserRequest){
         if(!isEmailValid(createNewUserRequest.email))
             throw {type: 'ValidationException', message: 'Invalid email'}
+        if(await this.userRepository.isUserPresent(createNewUserRequest.email))
+            throw {type: 'ApplicationException', message: 'Email already used.'}
         createNewUserRequest.password = secretKeyHash(createNewUserRequest.password)
-        this.userRepoitory.createUser(createNewUserRequest);
+        this.userRepository.createUser(createNewUserRequest);
     }
 
 }

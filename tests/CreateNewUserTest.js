@@ -13,13 +13,13 @@ const validAddUserRequest = {
         month: '3',
         year: '1990'
     },
-    bloodType: 'B+'    
+    bloodType: 'B+' 
 }
 
 QUnit.test('Test that creating new user succeeds when information is valid', (assert) => {
     const userRepositorySpy = new UserRepositorySpy()
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositorySpy)
-    createNewUserUseCase.do(validAddUserRequest)
+    return createNewUserUseCase.do(validAddUserRequest)
     .then(() => {
         assert.ok(userRepositorySpy.getWrittenUser().firstName === 'Bassel')
         assert.ok(userRepositorySpy.getWrittenUser().lastName === 'Chahine')
@@ -36,7 +36,7 @@ QUnit.test('Test that creating new user succeeds when information is valid', (as
 QUnit.test('Test that creating new user fails when email is invalid', (assert) => {
     const userRepositorySpy = new UserRepositorySpy();
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositorySpy);
-    createNewUserUseCase.do({
+    return createNewUserUseCase.do({
         firstName: 'Bassel',
         lastName: 'Chahine',
         email: 'hesoyam',
@@ -49,7 +49,52 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
         bloodType: 'B+'
     })
     .catch((exception) => {
-        assert.ok(exception.type === 'ValidationException');
-        assert.ok(exception.message === 'Invalid email');
+        assertEqualExceptions(
+            assert,
+            {
+                type: 'ValidationException',
+                message: 'Invalid email'
+            },
+            exception
+        )
+    })
+});
+
+class UserAlwaysPresentRepositoryStub {
+
+    async isUserPresent(email){
+        return true
+    }
+
+}
+
+function assertEqualExceptions(assert, expected, actual) {
+    assert.ok(expected.type === actual.type);
+    assert.ok(expected.message === actual.message);
+}
+
+QUnit.test('Test that creating new user fails when email is already used', (assert) => {
+    const userRepositoryStub = new UserAlwaysPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);
+    return createNewUserUseCase.do({
+        firstName: 'Bassel',
+        lastName: 'Chahine',
+        email: 'alinaim@naim.com',
+        phone: '+9613000000',
+        dateOfBirth: {
+            day: '3',
+            month: '3',
+            year: '1990'
+        },
+        bloodType: 'B+'
+    })
+    .catch((actualException) => {
+        assert.deepEqual(
+            actualException,
+            {
+                type: 'ApplicationException',
+                message: 'Email already used.'
+            }
+        )
     })
 });

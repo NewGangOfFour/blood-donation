@@ -1,5 +1,12 @@
 const CreateNewUserUseCase = require('../usecases/user/CreateNewUserUseCase');
-const UserRepositorySpy = require('../tests/testdoubles/UserRepositorySpy')
+const {
+    UserCreationSucceedingSpy
+} = require('../tests/testdoubles/UserRepository/CreateUserPossibleOutcomes')
+const {
+    UserAlwaysPresentRepositoryStub,
+    UserAlwaysNotPresentRepositoryStub
+} = require('../tests/testdoubles/UserRepository/IsUserPresentPossibleOutcomes')
+const combineIntoOneObject = require('../tests/helpers/combineIntoOneObject')
 const {secretKeyHash} = require('../usecases/user/Hashing')
 
 const validAddUserRequest = {
@@ -17,25 +24,28 @@ const validAddUserRequest = {
 }
 
 QUnit.test('Test that creating new user succeeds when information is valid', (assert) => {
-    const userRepositorySpy = new UserRepositorySpy()
-    const createNewUserUseCase = new CreateNewUserUseCase(userRepositorySpy)
+    const userRepository = combineIntoOneObject(
+        new UserCreationSucceedingSpy(),
+        new UserAlwaysNotPresentRepositoryStub()
+    )
+    const createNewUserUseCase = new CreateNewUserUseCase(userRepository)
     return createNewUserUseCase.do(validAddUserRequest)
     .then(() => {
-        assert.ok(userRepositorySpy.getWrittenUser().firstName === 'Bassel')
-        assert.ok(userRepositorySpy.getWrittenUser().lastName === 'Chahine')
-        assert.ok(userRepositorySpy.getWrittenUser().password === secretKeyHash('thisispassword'))
-        assert.ok(userRepositorySpy.getWrittenUser().email === 'hesoyam@outlook.com')
-        assert.ok(userRepositorySpy.getWrittenUser().phone === '+9613000000')
-        assert.ok(userRepositorySpy.getWrittenUser().dateOfBirth.day === '3')
-        assert.ok(userRepositorySpy.getWrittenUser().dateOfBirth.month === '3')
-        assert.ok(userRepositorySpy.getWrittenUser().dateOfBirth.year === '1990')
-        assert.ok(userRepositorySpy.getWrittenUser().bloodType === 'B+')
+        assert.ok(userRepository.getWrittenUser().firstName === 'Bassel')
+        assert.ok(userRepository.getWrittenUser().lastName === 'Chahine')
+        assert.ok(userRepository.getWrittenUser().password === secretKeyHash('thisispassword'))
+        assert.ok(userRepository.getWrittenUser().email === 'hesoyam@outlook.com')
+        assert.ok(userRepository.getWrittenUser().phone === '+9613000000')
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.day === '3')
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.month === '3')
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.year === '1990')
+        assert.ok(userRepository.getWrittenUser().bloodType === 'B+')
     })
 });
 
 QUnit.test('Test that creating new user fails when email is invalid', (assert) => {
-    const userRepositorySpy = new UserRepositorySpy();
-    const createNewUserUseCase = new CreateNewUserUseCase(userRepositorySpy);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
     return createNewUserUseCase.do({
         firstName: 'Bassel',
         lastName: 'Chahine',
@@ -59,14 +69,6 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
         )
     })
 });
-
-class UserAlwaysPresentRepositoryStub {
-
-    async isUserPresent(email){
-        return true
-    }
-
-}
 
 function assertEqualExceptions(assert, expected, actual) {
     assert.ok(expected.type === actual.type);

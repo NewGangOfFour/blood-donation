@@ -1,4 +1,4 @@
-module.exports = class {
+class UserCreationSucceedingSpy {
 
     constructor(){
         this.userData = {}
@@ -8,12 +8,12 @@ module.exports = class {
         this.userData = userData
     }
 
-    async isUserPresent(email){
-        return false
-    }
-    
     getWrittenUser(){
         return this.userData
     }
 
+}
+
+module.exports = {
+    UserCreationSucceedingSpy
 }

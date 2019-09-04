@@ -57,7 +57,7 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
             actualException,
             {
                 type: 'ValidationException',
-                message: 'Invalid email'
+                message: 'Invalid email.'
             }
         )
     })
@@ -74,7 +74,24 @@ QUnit.test('Test that creating new user fails when phone is invalid', (assert) =
             actualException,
             {
                 type: 'ValidationException',
-                message: 'Invalid phone'
+                message: 'Invalid phone.'
+            }
+        )
+    })
+});
+
+QUnit.test('Test that creating new user fails when blood type is invalid', (assert) => {
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        bloodType: 'C'
+    }))
+    .catch((actualException) => {
+        assert.deepEqual(
+            actualException,
+            {
+                type: 'ValidationException',
+                message: 'Invalid blood type.'
             }
         )
     })

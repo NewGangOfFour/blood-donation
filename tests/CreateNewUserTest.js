@@ -17,9 +17,9 @@ const validAddUserRequest = {
     email: 'hesoyam@outlook.com',
     phone: '+9613000000',
     dateOfBirth: {
-        day: '3',
-        month: '3',
-        year: '1990'
+        day: 0,
+        month: 3,
+        year: 1990
     },
     bloodType: 'B+' 
 }
@@ -39,9 +39,9 @@ QUnit.test('Test that creating new user succeeds when information is valid', (as
         assert.ok(userRepository.getWrittenUser().password === secretKeyHash('thisispassword'))
         assert.ok(userRepository.getWrittenUser().email === 'hesoyam@outlook.com')
         assert.ok(userRepository.getWrittenUser().phone === '+9613000000')
-        assert.ok(userRepository.getWrittenUser().dateOfBirth.day === '3')
-        assert.ok(userRepository.getWrittenUser().dateOfBirth.month === '3')
-        assert.ok(userRepository.getWrittenUser().dateOfBirth.year === '1990')
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.day === 0)
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.month === 3)
+        assert.ok(userRepository.getWrittenUser().dateOfBirth.year === 1990)
         assert.ok(userRepository.getWrittenUser().bloodType === 'B+')
     })
 });
@@ -92,6 +92,27 @@ QUnit.test('Test that creating new user fails when blood type is invalid', (asse
             {
                 type: 'ValidationException',
                 message: 'Invalid blood type.'
+            }
+        )
+    })
+});
+
+QUnit.test('Test that creating new user fails when day of dateOfBirth is invalid', (assert) => {
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        dateOfBirth: {
+            day: 31,
+            month: 1,
+            year: 1972
+        }
+    }))
+    .catch((actualException) => {
+        assert.deepEqual(
+            actualException,
+            {
+                type: 'ValidationException',
+                message: 'Invalid date of birth.'
             }
         )
     })

@@ -51,8 +51,8 @@ function createApplicationException(message){
 
 module.exports = class {
 
-    constructor(userRepoitory){
-        this.userRepository = userRepoitory
+    constructor(userRepository){
+        this.userRepository = userRepository
     }
 
     async do(createNewUserRequest){

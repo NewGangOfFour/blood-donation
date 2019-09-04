@@ -63,6 +63,23 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
     })
 });
 
+QUnit.test('Test that creating new user fails when phone is invalid', (assert) => {
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        phone: 'iAmNotValidPhoneValue'
+    }))
+    .catch((actualException) => {
+        assert.deepEqual(
+            actualException,
+            {
+                type: 'ValidationException',
+                message: 'Invalid phone'
+            }
+        )
+    })
+});
+
 QUnit.test('Test that creating new user fails when email is already used', (assert) => {
     const userRepositoryStub = new UserAlwaysPresentRepositoryStub();
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);

@@ -1,4 +1,5 @@
 const {secretKeyHash} = require('../user/Hashing')
+const {createValidationException, createApplicationException} = require('./usecaseExceptions')
 
 function isEmailValid(email){
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
@@ -50,14 +51,6 @@ class RequestValidationQuery {
         return this.failureMessage
     }
 
-}
-
-function createValidationException(message){
-    return {type: 'ValidationException', message}
-}
-
-function createApplicationException(message){
-    return {type: 'ApplicationException', message}
 }
 
 module.exports = class {

@@ -8,6 +8,10 @@ const {
 } = require('../tests/testdoubles/UserRepository/IsUserPresentPossibleOutcomes')
 const ObjectModifier = require('../tests/helpers/ObjectModifier')
 const combineIntoOneObject = require('../tests/helpers/combineIntoOneObject')
+const {
+    createValidationException,
+    createApplicationException
+} = require('../usecases/user/usecaseExceptions')
 const {secretKeyHash} = require('../usecases/user/Hashing')
 
 const validAddUserRequest = {
@@ -53,13 +57,9 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
         email: 'invalidemail'
     }))
     .catch((actualException) => {
-        assert.deepEqual(
-            actualException,
-            {
-                type: 'ValidationException',
-                message: 'Invalid email.'
-            }
-        )
+        assert.ok(actualException.equals(
+               createValidationException('Invalid email.')
+        ))
     })
 });
 
@@ -70,13 +70,9 @@ QUnit.test('Test that creating new user fails when phone is invalid', (assert) =
         phone: 'iAmNotValidPhoneValue'
     }))
     .catch((actualException) => {
-        assert.deepEqual(
-            actualException,
-            {
-                type: 'ValidationException',
-                message: 'Invalid phone.'
-            }
-        )
+        assert.ok(actualException.equals(
+            createValidationException('Invalid phone.')
+        ))
     })
 });
 
@@ -87,13 +83,9 @@ QUnit.test('Test that creating new user fails when blood type is invalid', (asse
         bloodType: 'C'
     }))
     .catch((actualException) => {
-        assert.deepEqual(
-            actualException,
-            {
-                type: 'ValidationException',
-                message: 'Invalid blood type.'
-            }
-        )
+        assert.ok(actualException.equals(
+            createValidationException('Invalid blood type.')
+     ))
     })
 });
 
@@ -108,13 +100,9 @@ QUnit.test('Test that creating new user fails when day of dateOfBirth is invalid
         }
     }))
     .catch((actualException) => {
-        assert.deepEqual(
-            actualException,
-            {
-                type: 'ValidationException',
-                message: 'Invalid date of birth.'
-            }
-        )
+        assert.ok(actualException.equals(
+            createValidationException('Invalid date of birth.')
+        ))
     })
 });
 
@@ -123,12 +111,8 @@ QUnit.test('Test that creating new user fails when email is already used', (asse
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);
     return createNewUserUseCase.do(validAddUserRequest)
     .catch((actualException) => {
-        assert.deepEqual(
-            actualException,
-            {
-                type: 'ApplicationException',
-                message: 'Email already used.'
-            }
-        )
+        assert.ok(actualException.equals(
+            createApplicationException('Email already used.')
+        ))
     })
 });

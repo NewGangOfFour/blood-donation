@@ -1,5 +1,9 @@
 const {secretKeyHash} = require('../user/Hashing')
-const {createValidationException, createApplicationException} = require('./usecaseExceptions')
+const {
+    createJSDateFromDateOfBirth,
+    epochAfterYears
+} = require('../../usecases/user/date')
+const {createValidationException, createApplicationException, createIOException} = require('./usecaseExceptions')
 
 function isEmailValid(email){
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
@@ -53,21 +57,6 @@ class RequestValidationQuery {
 
 }
 
-function shiftDateForwardsByYears(date, years){
-    date.setFullYear(date.getFullYear() + years)
-    return date
-}
-
-function createJSDateFromDateOfBirth(dateOfBirth){
-    return new Date(dateOfBirth.year,
-                    dateOfBirth.month,
-                    dateOfBirth.day + 1)
-}
-
-function epochAfterYears(dateOfBirth, years){
-    return shiftDateForwardsByYears(createJSDateFromDateOfBirth(dateOfBirth), years)
-}
-
 function is18OrOlder(dateOfBirth){
     const epochWhen18YearsOld = epochAfterYears(dateOfBirth, 18)
     const currentEpoch = Date.now()
@@ -86,10 +75,15 @@ module.exports = class {
             throw createValidationException(requestValidationQuery.failureCause())
         if(!is18OrOlder(createNewUserRequest.dateOfBirth))
             throw createApplicationException('User less than 18 years old.')
-        if(await this.userRepository.isUserPresent(createNewUserRequest.email))
+        if(await this.userRepository.isUserPresent(createNewUserRequest.email).catch(()=>{
+            throw createIOException('Cannot search for user.')
+        }))
             throw createApplicationException('Email already used.')
         createNewUserRequest.password = secretKeyHash(createNewUserRequest.password)
-        this.userRepository.createUser(createNewUserRequest);
+        return this.userRepository.createUser(createNewUserRequest)
+        .catch(() =>{
+            throw createIOException('Cannot add user.')
+        })
     }
 
 }

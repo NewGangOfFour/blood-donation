@@ -14,6 +14,19 @@ class UserCreationSucceedingSpy {
 
 }
 
+class UserCreationFailureStub {
+
+    constructor(){
+        this.userData = {}
+    }
+
+    async createUser(userData){
+        throw 'I failed!'
+    }
+
+}
+
 module.exports = {
-    UserCreationSucceedingSpy
+    UserCreationSucceedingSpy,
+    UserCreationFailureStub
 }

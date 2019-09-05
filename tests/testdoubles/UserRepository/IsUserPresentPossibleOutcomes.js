@@ -14,7 +14,16 @@ class UserAlwaysNotPresentRepositoryStub {
 
 }
 
+class CannotSearchForUserRepositoryStub {
+
+    async isUserPresent(){
+        throw 'Cannot search for nobody.'
+    }
+
+}
+
 module.exports = {
     UserAlwaysPresentRepositoryStub,
-    UserAlwaysNotPresentRepositoryStub
+    UserAlwaysNotPresentRepositoryStub,
+    CannotSearchForUserRepositoryStub
 }

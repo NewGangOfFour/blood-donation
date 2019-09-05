@@ -5,6 +5,9 @@ module.exports = {
     },
     createApplicationException(message){
         return new Exception('ApplicationException', message)
+    },
+    createIOException(message){
+        return new Exception('IOException', message)
     }
 
 }

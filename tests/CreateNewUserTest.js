@@ -1,19 +1,23 @@
-const CreateNewUserUseCase = require('../usecases/user/CreateNewUserUseCase');
+const CreateNewUserUseCase = require('../usecases/user/CreateNewUserUseCase')
 const {
-    UserCreationSucceedingSpy
+    UserCreationSucceedingSpy,
+    UserCreationFailureStub
 } = require('../tests/testdoubles/UserRepository/CreateUserPossibleOutcomes')
 const {
     UserAlwaysPresentRepositoryStub,
-    UserAlwaysNotPresentRepositoryStub
+    UserAlwaysNotPresentRepositoryStub,
+    CannotSearchForUserRepositoryStub
 } = require('../tests/testdoubles/UserRepository/IsUserPresentPossibleOutcomes')
 const ObjectModifier = require('../tests/helpers/ObjectModifier')
 const combineIntoOneObject = require('../tests/helpers/combineIntoOneObject')
 const {
     createValidationException,
-    createApplicationException
+    createApplicationException,
+    createIOException
 } = require('../usecases/user/usecaseExceptions')
 const {secretKeyHash} = require('../usecases/user/Hashing')
 
+const SEVENTEEN_YEARS = 17
 const validAddUserRequest = {
     firstName: 'Bassel',
     lastName: 'Chahine',
@@ -50,9 +54,37 @@ QUnit.test('Test that creating new user succeeds when information is valid', (as
     })
 });
 
+QUnit.test('Test that creating new user fails when user email is not used but adding user fails', (assert) => {
+    const userRepository = combineIntoOneObject(
+        new UserAlwaysNotPresentRepositoryStub(),
+        new UserCreationFailureStub
+    )
+    const createNewUserUseCase = new CreateNewUserUseCase(userRepository)
+    return createNewUserUseCase.do(validAddUserRequest)
+    .catch((actualException) => {
+        assert.ok(actualException.equals(
+            createIOException('Cannot add user.')
+        ))
+    })
+});
+
+QUnit.test('Test that creating new user fails when user cannot be searched for', (assert) => {
+    const userRepository = combineIntoOneObject(
+        new CannotSearchForUserRepositoryStub(),
+        new UserCreationSucceedingSpy()
+    )
+    const createNewUserUseCase = new CreateNewUserUseCase(userRepository)
+    return createNewUserUseCase.do(validAddUserRequest)
+    .catch((actualException) => {
+        assert.ok(actualException.equals(
+            createIOException('Cannot search for user.')
+        ))
+    })
+});
+
 QUnit.test('Test that creating new user fails when email is invalid', (assert) => {
-    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository)
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         email: 'invalidemail'
     }))
@@ -61,11 +93,11 @@ QUnit.test('Test that creating new user fails when email is invalid', (assert) =
                createValidationException('Invalid email.')
         ))
     })
-});
+})
 
 QUnit.test('Test that creating new user fails when phone is invalid', (assert) => {
-    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository)
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         phone: 'iAmNotValidPhoneValue'
     }))
@@ -74,11 +106,11 @@ QUnit.test('Test that creating new user fails when phone is invalid', (assert) =
             createValidationException('Invalid phone.')
         ))
     })
-});
+})
 
 QUnit.test('Test that creating new user fails when blood type is invalid', (assert) => {
-    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository)
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         bloodType: 'C'
     }))
@@ -87,11 +119,11 @@ QUnit.test('Test that creating new user fails when blood type is invalid', (asse
             createValidationException('Invalid blood type.')
      ))
     })
-});
+})
 
 QUnit.test('Test that creating new user fails when day of dateOfBirth is invalid', (assert) => {
-    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository)
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         dateOfBirth: {
             day: 31,
@@ -104,13 +136,11 @@ QUnit.test('Test that creating new user fails when day of dateOfBirth is invalid
             createValidationException('Invalid date of birth.')
         ))
     })
-});
-
-const SEVENTEEN_YEARS = 17
+})
 
 QUnit.test('Test that creating new user fails when user is less than 18 years old', (assert) => {
-    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository)
     return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
         dateOfBirth: {
             day: 2,
@@ -123,15 +153,15 @@ QUnit.test('Test that creating new user fails when user is less than 18 years ol
             createApplicationException('User less than 18 years old.')
         ))
     })
-});
+})
 
 QUnit.test('Test that creating new user fails when email is already used', (assert) => {
-    const userRepositoryStub = new UserAlwaysPresentRepositoryStub();
-    const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);
+    const userRepository = new UserAlwaysPresentRepositoryStub()
+    const createNewUserUseCase = new CreateNewUserUseCase(userRepository)
     return createNewUserUseCase.do(validAddUserRequest)
     .catch((actualException) => {
         assert.ok(actualException.equals(
             createApplicationException('Email already used.')
         ))
     })
-});
+})

@@ -1,4 +1,7 @@
-const CreateNewUserUseCase = require('../usecases/user/CreateNewUserUseCase')
+const {
+    UseCase: CreateNewUserUseCase,
+    ApplicationException
+} = require('../usecases/user/CreateNewUserUseCase')
 const {
     UserCreationSucceedingSpy,
     UserCreationFailureStub
@@ -150,7 +153,7 @@ QUnit.test('Test that creating new user fails when user is less than 18 years ol
     }))
     .catch((actualException) => {
         assert.ok(actualException.equals(
-            createApplicationException('User less than 18 years old.')
+            createApplicationException(ApplicationException.USER_UNDER_AGE)
         ))
     })
 })
@@ -161,7 +164,7 @@ QUnit.test('Test that creating new user fails when email is already used', (asse
     return createNewUserUseCase.do(validAddUserRequest)
     .catch((actualException) => {
         assert.ok(actualException.equals(
-            createApplicationException('Email already used.')
+            createApplicationException(ApplicationException.USER_ALREADY_HAS_ACCOUNT)
         ))
     })
 })

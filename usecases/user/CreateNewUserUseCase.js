@@ -63,7 +63,12 @@ function is18OrOlder(dateOfBirth){
     return epochWhen18YearsOld <= currentEpoch
 }
 
-module.exports = class {
+const ApplicationException = {
+    USER_UNDER_AGE: 'User less than 18 years old.',
+    USER_ALREADY_HAS_ACCOUNT: 'User already has an account.'
+}
+
+class UseCase{
 
     constructor(userRepository){
         this.userRepository = userRepository
@@ -74,16 +79,30 @@ module.exports = class {
         if(!requestValidationQuery.didSucceed())
             throw createValidationException(requestValidationQuery.failureCause())
         if(!is18OrOlder(createNewUserRequest.dateOfBirth))
-            throw createApplicationException('User less than 18 years old.')
-        if(await this.userRepository.isUserPresent(createNewUserRequest.email).catch(()=>{
-            throw createIOException('Cannot search for user.')
-        }))
-            throw createApplicationException('Email already used.')
+            throw createApplicationException(ApplicationException.USER_UNDER_AGE)
+        if(await this.isEmailTaken(createNewUserRequest.email))
+            throw createApplicationException(ApplicationException.USER_ALREADY_HAS_ACCOUNT)
         createNewUserRequest.password = secretKeyHash(createNewUserRequest.password)
-        return this.userRepository.createUser(createNewUserRequest)
+        await this.addUserToRepository(createNewUserRequest)
+    }    
+
+    async isEmailTaken(email) {
+        return this.userRepository.isUserPresent(email)
+        .catch(()=>{
+            throw createIOException('Cannot search for user.')
+        })
+    }
+
+    async addUserToRepository(addUserRequest) {
+        return this.userRepository.createUser(addUserRequest)
         .catch(() =>{
             throw createIOException('Cannot add user.')
         })
     }
 
+}
+
+module.exports = {
+    UseCase,
+    ApplicationException
 }

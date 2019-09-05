@@ -10,7 +10,7 @@ function isPhoneNumberValid(phone){
 }
 
 function isDateValid(givenDate) {
-   const date = new Date(givenDate.year, givenDate.month, givenDate.day + 1)
+   const date = createJSDateFromDateOfBirth(givenDate)
    return givenDate.year === date.getFullYear() &&
           givenDate.month === date.getMonth() &&
           givenDate.day + 1 === date.getDate()
@@ -53,6 +53,27 @@ class RequestValidationQuery {
 
 }
 
+function shiftDateForwardsByYears(date, years){
+    date.setFullYear(date.getFullYear() + years)
+    return date
+}
+
+function createJSDateFromDateOfBirth(dateOfBirth){
+    return new Date(dateOfBirth.year,
+                    dateOfBirth.month,
+                    dateOfBirth.day + 1)
+}
+
+function epochAfterYears(dateOfBirth, years){
+    return shiftDateForwardsByYears(createJSDateFromDateOfBirth(dateOfBirth), years)
+}
+
+function is18OrOlder(dateOfBirth){
+    const epochWhen18YearsOld = epochAfterYears(dateOfBirth, 18)
+    const currentEpoch = Date.now()
+    return epochWhen18YearsOld <= currentEpoch
+}
+
 module.exports = class {
 
     constructor(userRepository){
@@ -63,6 +84,8 @@ module.exports = class {
         const requestValidationQuery = new RequestValidationQuery(createNewUserRequest)
         if(!requestValidationQuery.didSucceed())
             throw createValidationException(requestValidationQuery.failureCause())
+        if(!is18OrOlder(createNewUserRequest.dateOfBirth))
+            throw createApplicationException('User less than 18 years old.')
         if(await this.userRepository.isUserPresent(createNewUserRequest.email))
             throw createApplicationException('Email already used.')
         createNewUserRequest.password = secretKeyHash(createNewUserRequest.password)

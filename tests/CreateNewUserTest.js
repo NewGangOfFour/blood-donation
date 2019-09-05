@@ -106,6 +106,44 @@ QUnit.test('Test that creating new user fails when day of dateOfBirth is invalid
     })
 });
 
+const YEARS_BETWEEN_NOW_AND_TEST_BIRTH_YEAR = 10
+
+QUnit.test('Test that creating new user fails when user is less than 18 years old', (assert) => {
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        dateOfBirth: {
+            day: 2,
+            month: 5,
+            year: new Date(Date.now()).getFullYear() - YEARS_BETWEEN_NOW_AND_TEST_BIRTH_YEAR
+        }
+    }))
+    .catch((actualException) => {
+        assert.ok(actualException.equals(
+            createApplicationException('User less than 18 years old.')
+        ))
+    })
+});
+
+const YEARS_BETWEEN_NOW_AND_TEST_BIRTH_YEAR_2 = 17
+
+QUnit.test('Test that creating new user fails when user is less than 18 years old', (assert) => {
+    const anyRepository = new UserAlwaysNotPresentRepositoryStub();
+    const createNewUserUseCase = new CreateNewUserUseCase(anyRepository);
+    return createNewUserUseCase.do(validRequestModifier.alterObjectWithChanges({
+        dateOfBirth: {
+            day: 2,
+            month: 5,
+            year: new Date(Date.now()).getFullYear() - YEARS_BETWEEN_NOW_AND_TEST_BIRTH_YEAR_2
+        }
+    }))
+    .catch((actualException) => {
+        assert.ok(actualException.equals(
+            createApplicationException('User less than 18 years old.')
+        ))
+    })
+});
+
 QUnit.test('Test that creating new user fails when email is already used', (assert) => {
     const userRepositoryStub = new UserAlwaysPresentRepositoryStub();
     const createNewUserUseCase = new CreateNewUserUseCase(userRepositoryStub);

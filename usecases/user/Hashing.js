@@ -1,7 +1,7 @@
 module.exports = {
     
-    secretKeyHash(hashOut){
-        return 'hashOut'
+    secretKeyHash(secretKey){
+        return secretKey
     }
 
 }

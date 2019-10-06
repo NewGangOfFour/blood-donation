@@ -3,5 +3,8 @@
   "author": "gangOfFour",
   "scripts": {
     "test": "qunit tests/*"
+  },
+  "devDependencies": {
+   "qunit": "^2.9.2"
   }
 }
